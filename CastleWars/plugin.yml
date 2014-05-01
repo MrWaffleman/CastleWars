@@ -1,0 +1,48 @@
+name: CastleWars
+main: com.mythbusterma.CastleWars.CastleWars
+version: 0.0
+
+depend: [WorldEdit]
+
+commands:
+  castlewars:
+    description: All the commands for CastleWars
+  cw: 
+    descritpion: Same
+
+permissions:
+  castlewars.*:
+    children:
+      castlewars.create: true
+      castlewars.delete: true
+      castlewars.setspawn: true
+      castlewars.setlobby: true
+      castlewars.reload: true
+      castlewars.reload: true
+      castlewars.setplayers: true
+      castlewars.forceplayers: true
+  
+  castlewars.create:
+    default: op
+    description: Able to create arenas
+  castlewars.delete:
+    default: op
+    description: Able to delete arenas
+  castlewars.setspawn:
+    default: op
+    description: Able to set spawns
+  casltewars.setlobby:
+    default: op
+    description: Able to create a spawn
+  castlewars.reload:
+    default: op
+  castlewars.setplayers:
+    default: op
+    description: Able to set the max/min number of participating players
+  castlewars.forceplayers:
+    default: op
+    description: Can force players to participate in a game
+    
+  castlewars.join:
+    default: true
+    description: Can join a match
