@@ -1,21 +1,27 @@
 package com.mythbusterma.CastleWars.Serializables;
 
 import java.util.*;
+
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.SerializableAs;
+import org.bukkit.util.BlockVector;
 
 import com.sk89q.worldedit.bukkit.selections.Selection;
 
+@SerializableAs("ArenaData")
 public class ArenaData implements ConfigurationSerializable {
 	
-	private Location max;
-	private Location min;
-	private List<BlockState> blocks;
-	private Location blueSpawn;
-	private Location redSpawn;
-	private Location lobbySpawn;
+	private BlockVector max;
+	private BlockVector min;
+	private LocationSerializable blueSpawn;
+	private LocationSerializable redSpawn;
+	private LocationSerializable lobbySpawn;
+	private String schematicName;
 	private Orientation orientation;
+	private World world;
 	
 	public static enum Orientation {
 		NORTHSOUTH,
@@ -52,82 +58,19 @@ public class ArenaData implements ConfigurationSerializable {
 
 	//@SuppressWarnings("unchecked")
 	public ArenaData (Map<String,Object> map) throws ArrayStoreException {
-		max = (Location)map.get("max");
-		min = (Location)map.get("min");
+		max = (BlockVector)map.get("max");
+		min = (BlockVector)map.get("min");
 		
-		blueSpawn = (Location)map.get("blue");
-		redSpawn = (Location)map.get("red");
-		lobbySpawn = (Location)map.get("lobby");
-		try {
-			blocks = (LinkedList<BlockState>)map.get("blocks");
-			if (blocks == null) {
-				throw new ArrayStoreException("Blocks recived from config was null!");
-			}
-		}
-		finally {
-		}
+		blueSpawn = (LocationSerializable)map.get("blue");
+		redSpawn = (LocationSerializable)map.get("red");
+		lobbySpawn = (LocationSerializable)map.get("lobby");
 		orientation = Orientation.fromInteger(((Integer)map.get("orientation")).intValue());
 		
 	}
 	
 	public ArenaData (Selection s) {
-		blocks = new LinkedList<BlockState>();
-		
-		max = s.getMaximumPoint();
-		min = s.getMinimumPoint();
-		boolean xIncreasing = max.getX()>min.getX();
-		boolean yIncreasing = max.getY()>min.getY();
-		boolean zIncreasing = max.getZ()>min.getZ();
-		
-		int x = min.getBlockX();
-		int y = min.getBlockY();
-		int z = min.getBlockZ();
-		while (true) {
-			while(true) {
-				while(true) {
-					
-					blocks.add(s.getWorld().getBlockAt(x, y, z).getState());
-					
-					if(zIncreasing) {
-						if(z>=max.getBlockZ()) {
-							break;
-						}
-						z++;
-					}
-					else {
-						if(z<=max.getBlockZ()) {
-							break;
-						}
-						z--;
-					}
-					
-				}
-				if(yIncreasing) {
-					if(y>=max.getBlockY()) {
-						break;
-					}
-					y++;
-				}
-				else {
-					if(y<=max.getBlockY()) {
-						break;
-					}
-					y--;
-				}
-			}
-			if (xIncreasing) {
-				if(x>=max.getBlockX()){
-					break;
-				}
-				x++;
-			}
-			else {
-				if(x<=max.getBlockX()) {
-					break;
-				}
-				x--;
-			}
-		}
+		max =  new BlockVector(s.getMaximumPoint().toVector());
+		min = new BlockVector(s.getMinimumPoint().toVector());
 	}
 	
 	@Override
@@ -135,41 +78,40 @@ public class ArenaData implements ConfigurationSerializable {
 		Map<String, Object> temp = new HashMap<String,Object> ();
 		temp.put("max", max);
 		temp.put("min",min);
-		temp.put("blocks", blocks);
 		temp.put("blue", blueSpawn);
-		temp.put("red", blueSpawn);
+		temp.put("red",redSpawn);
 		temp.put("lobby", lobbySpawn);
 		temp.put("orientation", Orientation.toInteger(orientation));
 		return temp;
 	}
 
-	public Location getMax() {
+	public BlockVector getMax() {
 		return max;
 	}
 
 
-	public Location getMin() {
+	public BlockVector getMin() {
 		return min;
 	}
 
 	public Location getBlueSpawn() {
-		return blueSpawn;
+		return blueSpawn.toLocation();
 	}
 
 	public void setBlueSpawn(Location blueSpawn) {
-		this.blueSpawn = blueSpawn;
+		this.blueSpawn = new LocationSerializable(blueSpawn);
 	}
 
-	public Location getRedSpwan() {
-		return redSpawn;
+	public Location getRedSpawn() {
+		return redSpawn.toLocation();
 	}
 
-	public void setRedSpwan(Location redSpawn) {
-		this.redSpawn = redSpawn;
+	public void setRedSpawn(Location redSpawn) {
+		this.redSpawn = new LocationSerializable(redSpawn);
 	}
 
 	public Location getLobbySpawn() {
-		return lobbySpawn;
+		return lobbySpawn.toLocation();
 	}
 	
 	public void setOrientation(Orientation o) {
@@ -181,6 +123,14 @@ public class ArenaData implements ConfigurationSerializable {
 	}
 
 	public void setLobbySpawn(Location lobbySpawn) {
-		this.lobbySpawn = lobbySpawn;
+		this.lobbySpawn = new LocationSerializable(lobbySpawn);
+	}
+
+	public String getSchematicName() {
+		return schematicName;
+	}
+
+	public void setSchematicName(String schematicName) {
+		this.schematicName = schematicName;
 	}
 }

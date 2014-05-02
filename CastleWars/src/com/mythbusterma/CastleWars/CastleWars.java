@@ -3,6 +3,7 @@ package com.mythbusterma.CastleWars;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.bukkit.command.CommandSender;
@@ -11,6 +12,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.mythbusterma.CastleWars.Serializables.ArenaData;
+import com.mythbusterma.CastleWars.Serializables.LocationSerializable;
 import com.sk89q.worldedit.bukkit.*;
 
 public class CastleWars extends JavaPlugin {
@@ -20,10 +22,12 @@ public class CastleWars extends JavaPlugin {
 	private HashMap<String, String> playerSelected; // player, arena name
 	private LinkedList<Arena> arenas;
 	public static final boolean Verbose = true;
+	private TerrainManager tm;
 	
 	public void onEnable() {
 		
 		ConfigurationSerialization.registerClass(ArenaData.class);
+		ConfigurationSerialization.registerClass(LocationSerializable.class);
 		
 		worldedit = (WorldEditPlugin) getServer().getPluginManager().getPlugin("WorldEdit");
 		
@@ -41,6 +45,13 @@ public class CastleWars extends JavaPlugin {
 		
 		saveDefaultConfig();
 		
+		if(getConfig().getString("world") == null) {
+			getConfig().set("world", getServer().getWorlds().get(0).getName());
+			saveConfig();
+		}
+		
+		tm = new TerrainManager(worldedit,getServer().getWorld(getConfig().getString("world")));
+		
 		loadArenas();
 	}
 	
@@ -57,6 +68,10 @@ public class CastleWars extends JavaPlugin {
 	}
 	
 	public void setPlayerSelection(CommandSender cs, Arena a) {
+		if ( a == null) {
+			playerSelected.put(cs.getName(), null);
+			return;
+		}
 		playerSelected.put(cs.getName(), a.getName());
 	}
 	
@@ -85,14 +100,16 @@ public class CastleWars extends JavaPlugin {
 	}
 	
 	public void loadArenas () {
-		List<String> sl = arenasConfig.getConfig().getStringList("arenas");
-		for (String s:sl) {
-			Arena temp = Arena.arenaFromConfig(this, s);
-			this.getServer().getConsoleSender().sendMessage("Loaded Arena: " + s);
-			if(Verbose) {
-				this.getLogger().log(Level.INFO, "LOADED ARENA NAME :" + s  + " FROM CONFIG");
+		if(arenasConfig.getConfig().getConfigurationSection("arenas")!= null){
+			Set<String> sl = arenasConfig.getConfig().getConfigurationSection("arenas").getKeys(false);
+			for (String s:sl) {
+				Arena temp = Arena.arenaFromConfig(this, s);
+				this.getServer().getConsoleSender().sendMessage("Loaded Arena: " + s);
+				if(Verbose) {
+					this.getLogger().log(Level.INFO, "LOADED ARENA NAME :" + s  + " FROM CONFIG");
+				}
+				addArena(temp);
 			}
-			addArena(temp);
 		}
 	}
 	
@@ -122,5 +139,9 @@ public class CastleWars extends JavaPlugin {
 			}
 		}
 		arenasConfig.saveConfig();
+	}
+
+	public TerrainManager getTm() {
+		return tm;
 	}
 }

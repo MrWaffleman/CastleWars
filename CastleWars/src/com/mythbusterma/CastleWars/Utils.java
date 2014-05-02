@@ -87,4 +87,16 @@ public class Utils {
 		
 	}
 
+	public void setLobbySpawn(Player sender, String arena) throws NullPointerException {
+		parent.getArenaByName(arena).getData().setLobbySpawn(sender.getLocation());
+	}
+
+	public void setRedSpawn(Player sender, String arena) {
+		parent.getArenaByName(arena).getData().setRedSpawn(sender.getLocation());		
+	}
+
+	public void setBlueSpawn(Player sender, String arena) {
+		parent.getArenaByName(arena).getData().setBlueSpawn(sender.getLocation());		
+	}
+
 }
