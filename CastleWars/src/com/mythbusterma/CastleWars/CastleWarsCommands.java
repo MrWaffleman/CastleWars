@@ -3,6 +3,8 @@ package com.mythbusterma.CastleWars;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
+import com.sk89q.worldedit.FilenameException;
+
 public class CastleWarsCommands implements CommandExecutor {
 	
 	private CastleWars parent;
@@ -21,15 +23,18 @@ public class CastleWarsCommands implements CommandExecutor {
 			boolean empty =args[0] == null;
 		}
 		catch (IndexOutOfBoundsException e) {
-			sender.sendMessage("Usage: (question marks denote optional with selection\n"
-					+ "/cw select <name>: select an arena by name\n"
-					+ "/cw createarena <name>: create a new arena with the current WorldEdit Selection\n"
-					+ "/cw setbluespawn ?<name>?: set the blue spawn of an arena\n"
-					+ "/cw setredspawn ?<name>?: set the red spawn of an arena\n"
-					+ "/cw setlobbyspawn ?<name>?: set the lobby spawn point of an arena\n"
-					+ "/cw delete ?<name>?: delete an arena\n"
-					+ "/cw save ?<name>?: force saving of an arena (this is done automatically at server shutdown)\n"
-					+ "/cw list: list all arenas in memory");
+			sender.sendMessage("Usage: (question marks denote optional with selection), a: indicates alias\n"
+					+ "/cw select <name>: select an arena by name a: sel\n"
+					+ "/cw createarena <name>: create a new arena with the current WorldEdit Selection a:create, ca\n"
+					+ "/cw setbluespawn ?<name>?: set the blue spawn of an arena, a: sbs\n"
+					+ "/cw setredspawn ?<name>?: set the red spawn of an arena, a: srs\n"
+					+ "/cw setlobbyspawn ?<name>?: set the lobby spawn point of an arena, a: sls\n"
+					+ "/cw delete ?<name>?: delete an arena, a:\n"
+					+ "/cw fsave ?<name>?: force saving of an arena (this is done automatically at server shutdown, "
+					+ " will not save changes made, use /cw save for that)\n"
+					+ "/cw list: list all arenas in memory\n"
+					+ "/cw save: save changes made to an arena a: s\n"
+					+ "/cw restore ?<name>?: reset an arena to the last save state");
 			return false;
 		}
 		
@@ -166,6 +171,74 @@ public class CastleWarsCommands implements CommandExecutor {
 				
 			}
 			
+			
+			if(args[0].equalsIgnoreCase("restore") || args[0].equalsIgnoreCase("res")) {
+				if (args.length <= 1) {
+					Arena sel = parent.getPlayerSelection(sender);
+					if (sel == null) {
+						sender.sendMessage("Not enough arguments!");
+						return false;
+					}
+					sender.sendMessage("Restored selection: "+parent.getPlayerSelection(sender));
+					try {
+						sel.restore();
+					} catch (NullPointerException e) {
+						// TODO Auto-generated catch block
+						sender.sendMessage("error");
+						e.printStackTrace();
+					} catch (FilenameException e) {
+						// TODO Auto-generated catch block
+						sender.sendMessage("error");
+						e.printStackTrace();
+					}
+					return true;
+				}
+				
+				Arena sel = parent.getArenaByName(args[1]);
+				if (sel != null) {
+					try {
+						sel.restore();
+					} catch (NullPointerException | FilenameException e) {
+						// TODO Auto-generated catch block
+						sender.sendMessage("error");
+						e.printStackTrace();
+					}
+					sender.sendMessage("Restored arena: " + sel.getName());
+					return true;
+				}
+				else {
+					sender.sendMessage("No arena found by that name!");
+					return false;
+				}
+				
+			}
+			
+
+			if(args[0].equalsIgnoreCase("save") || args[0].equalsIgnoreCase("s")) {
+				if (args.length <= 1) {
+					Arena sel = parent.getPlayerSelection(sender);
+					if (sel == null) {
+						sender.sendMessage("Not enough arguments!");
+						return false;
+					}
+					sender.sendMessage("Saved selection: "+parent.getPlayerSelection(sender));
+					sel.save();
+					return true;
+				}
+				
+				Arena sel = parent.getArenaByName(args[1]);
+				if (sel != null) {
+					sel.save();
+					sender.sendMessage("Saved arena: " + sel.getName());
+					return true;
+				}
+				else {
+					sender.sendMessage("No arena found by that name!");
+					return false;
+				}
+				
+			}
+			
 			if(args[0].equalsIgnoreCase("list")) {
 				
 				sender.sendMessage("Currently registered arenas are:\n");
@@ -178,9 +251,10 @@ public class CastleWarsCommands implements CommandExecutor {
 			if(args[0].equalsIgnoreCase("rename") || args[0].equalsIgnoreCase("re")) {
 				if(args.length >= 3) {
 					Arena sel = parent.getArenaByName(args[1]);
+					parent.deleteArena(sel);
 					if (sel != null) {
 						sender.sendMessage("Arena " +sel.getName()+ " has been renamed " + args[2]);
-						sel.setName(args[2]);
+						//Arena temp = new Arena(parent,args[2],sel.getData().get);
 						return true;
 					}
 				}

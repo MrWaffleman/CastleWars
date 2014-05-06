@@ -1,5 +1,6 @@
 package com.mythbusterma.CastleWars;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +25,47 @@ public class CastleWars extends JavaPlugin {
 	public static final boolean Verbose = true;
 	private TerrainManager tm;
 	
+	public enum Team 
+	{
+		RED,
+		BLUE,
+		SPECTATE,
+		LOBBY;
+		
+		public int toInteger(Team t) {
+			if (t==RED) {
+				return 1;
+			}
+			else if (t==BLUE){
+				return 2;
+			}
+			else if (t==SPECTATE) {
+				return 3;
+			}
+			else if (t==LOBBY) {
+				return 4;
+			}
+			else {
+				return -1;
+			}
+		}
+		public Team fromInteger(int i) {
+			if (i == 1) {
+				return RED;
+			}
+			else if (i== 2) {
+				return BLUE;
+			}
+			else if(i == 3) {
+				return SPECTATE;
+			}
+			else if (i == 4) {
+				return LOBBY;
+			}
+			else return null;
+		}
+	}
+	
 	public void onEnable() {
 		
 		ConfigurationSerialization.registerClass(ArenaData.class);
@@ -35,6 +77,8 @@ public class CastleWars extends JavaPlugin {
 		arenasConfig.saveDefaultConfig();
 		
 		PluginManager pm = this.getServer().getPluginManager();
+		
+		pm.registerEvents(new MatchThinkListener(this), this);
 		
 		getCommand("castlewars").setExecutor(new CastleWarsCommands(this));
 		getCommand("cw").setExecutor(new CastleWarsCommands(this));
@@ -118,6 +162,9 @@ public class CastleWars extends JavaPlugin {
 		
 		arenasConfig.getConfig().set(path+".world",a.getWorld().getName());
 		arenasConfig.getConfig().set(path+".data", a.getData());
+		
+		
+		
 		if(Verbose) {
 			this.getLogger().log(Level.INFO, "SAVED ARENA NAME: " + a.getName() + " TO CONFIG");
 		}
@@ -126,6 +173,10 @@ public class CastleWars extends JavaPlugin {
 	public void deleteArena(Arena a) {
 		arenas.remove(a);
 		arenasConfig.getConfig().set("arenas." +a.getName(), null);
+		
+		File file = new File(this.getDataFolder()+ "/arenas",a.getData().getSchematicName() + ".schematic");
+		
+		file.delete();
 		if(Verbose) {
 			this.getLogger().log(Level.INFO, "DELETED ARENA NAME: " + a.getName());
 		}

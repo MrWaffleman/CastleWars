@@ -6,3 +6,16 @@ mins:
   minx: 10
   miny: 2
   minz: 10
+  
+#The minimum number of players in lobby to start the match countdown
+minplayers: 4
+
+#The length of time before a match start after the minimum number of players join, in seconds
+matchcountdown: 120 #2 minutes
+
+#Length of the first stage of the match where players collect resources, in seconds
+firststagelength: 1800 #30 minutes
+
+#Length of the second stage of the match where players fight, usually match will end first by
+# players killing each other
+secondstagelength: 900 #15 minutes
