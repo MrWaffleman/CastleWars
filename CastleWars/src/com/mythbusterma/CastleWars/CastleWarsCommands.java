@@ -3,6 +3,7 @@ package com.mythbusterma.CastleWars;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
+import com.mythbusterma.CastleWars.Serializables.ArenaData.Orientation;
 import com.sk89q.worldedit.FilenameException;
 
 public class CastleWarsCommands implements CommandExecutor {
@@ -19,10 +20,7 @@ public class CastleWarsCommands implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		// TODO Auto-generated method stub
 		
-		try {
-			boolean empty =args[0] == null;
-		}
-		catch (IndexOutOfBoundsException e) {
+		if(args.length == 0) {
 			sender.sendMessage("Usage: (question marks denote optional with selection), a: indicates alias\n"
 					+ "/cw select <name>: select an arena by name a: sel\n"
 					+ "/cw createarena <name>: create a new arena with the current WorldEdit Selection a:create, ca\n"
@@ -33,8 +31,13 @@ public class CastleWarsCommands implements CommandExecutor {
 					+ "/cw fsave ?<name>?: force saving of an arena (this is done automatically at server shutdown, "
 					+ " will not save changes made, use /cw save for that)\n"
 					+ "/cw list: list all arenas in memory\n"
-					+ "/cw save: save changes made to an arena a: s\n"
-					+ "/cw restore ?<name>?: reset an arena to the last save state");
+					+ "/cw save: save changes made to an arena, e.g. breaking blocks or making signs a: s\n"
+					+ "/cw restore ?<name>?: reset an arena to the last save state\n"
+					+ "/cw blue: when in lobby, change to the blue team\n"
+					+ "/cw spectate: when in lobby, change to spectator\n"
+					+ "/cw red: when in lobby, change to the red team\n"
+					+ "/cw join <name>: join a game, puts you in the lobby\n"
+					+ "/cw orientation ?<name>? <orientation>: set the way a arena is divided, valid values are: northsouth, eastwest, or horizontal a: o");
 			return false;
 		}
 		
@@ -117,6 +120,72 @@ public class CastleWarsCommands implements CommandExecutor {
 				else {
 					sender.sendMessage("You can't do this from the console!");
 				}
+			}
+			
+			if(args[0].equalsIgnoreCase("orientation") || args[0].equalsIgnoreCase("o")) {
+				if(sender.hasPermission("castlewars.orientation")) {
+					if (args.length == 1) {
+						sender.sendMessage("Not enough arguments!");
+						return false;
+					}
+					else if (args.length == 2) {
+						Arena sel = parent.getPlayerSelection(sender);
+						if (sel != null) {
+							Orientation o = null;
+							if (args[1].startsWith("n")) {
+								o = Orientation.NORTHSOUTH;
+							}
+							else if (args[1].startsWith("e")) {
+								o = Orientation.EASTWEST;
+							}
+							else if (args[1].startsWith("h")) {
+								o = Orientation.HORIZONTAL;
+							}
+							
+							if (o != null) {
+								util.setOrientation(sel.getName(), o);
+								sender.sendMessage("Orientation of " +sel.getName() + " changed to " + o.toString());
+								return true;
+							}
+							else {
+								sender.sendMessage("Orientation incorrect!");
+								return true;
+							}
+						}
+						else {
+							sender.sendMessage("No arena selected!");
+						}
+					}
+					else if (args.length >=3) {
+						Arena sel = parent.getArenaByName(args[1]);
+						if (sel == null) {
+							sender.sendMessage("Arena by name: " + args[1] + " not found");
+							return true;
+						}
+						else {
+							Orientation o = null;
+							if (args[2].startsWith("n")) {
+								o = Orientation.NORTHSOUTH;
+							}
+							else if (args[2].startsWith("e")) {
+								o = Orientation.EASTWEST;
+							}
+							else if (args[2].startsWith("h")) {
+								o = Orientation.HORIZONTAL;
+							}
+							
+							if (o != null) {
+								util.setOrientation(sel.getName(), o);
+								sender.sendMessage("Orientation of " +sel.getName() + " changed to " + o.toString());
+								return true;
+							}
+							else {
+								sender.sendMessage("Orientation incorrect!");
+								return true;
+							}
+						}
+					}
+ 				}
 			}
 			
 			if(args[0].equalsIgnoreCase("setLobbySpawn") || args[0].equalsIgnoreCase("sls")) {
@@ -245,11 +314,89 @@ public class CastleWarsCommands implements CommandExecutor {
 				for (Arena a : parent.getArenas()) {
 					sender.sendMessage(a.getName() + '\n');
 				}
+				return true;
 			}
+			
+			
+			/*
+			 *
+			 /////////////////////////////////////////////////////////////////////////////////////////////
+			 * 
+			 * Normal player commands
+			 */
+			if (args[0].equalsIgnoreCase("join")) {
+				if (!(sender instanceof Player)) {
+					sender.sendMessage("You must be a player to join a match!");
+					return false;
+				}
+				if(args.length < 2) {
+					sender.sendMessage("Not enough arguments!");
+					return false;
+				}
+				
+				Arena a = parent.getArenaByName(args[1]);
+				
+				if (a == null) {
+					sender.sendMessage("No arena by the name of: "  + args[1]);
+					return true;
+				}
+				else {
+					int ret = a.getCurrentMatch().join(sender.getName());
+					if (ret == 1) {
+						sender.sendMessage("You will be teleported to the arena after " + parent.getConfig().getInt("teleportdelay") + " second/s");
+					}
+					else if (ret == -100) {
+						sender.sendMessage("You are already in this arena!");
+					}
+					else if (ret == -101) {
+						sender.sendMessage("You are already in an arena, leave before trying to join this one! (/cw leave)");
+					}
+					else if (ret == -102) {
+						sender.sendMessage("The administrator has not finished setting up the arena, contact them about finishing it before trying to join");
+					}
+					return true;
+				}
+			}
+			
+			if (args[0].equalsIgnoreCase("red") || args[0].equalsIgnoreCase("redteam")) {
+				if (!(sender instanceof Player)) {
+					sender.sendMessage("You must be a player to join a team!");
+					return false;
+				}
+				
+				Arena arena = null;
+				
+				for (Arena a : parent.getArenas()) {
+					for (String s : a.getCurrentMatch().getParticipants()) {
+						if(s.equalsIgnoreCase(sender.getName())) {
+							arena = a;
+						}
+					}
+				}
+				
+				if (arena == null) {
+					sender.sendMessage("You must be in an arena to join a team!");
+				}
+				else {
+					int ret = arena.getCurrentMatch().joinRed(sender.getName());
+					if (ret == 1) {
+						sender.sendMessage("You are scheduled to join the red team in the next match!");
+					}
+					else if (ret == -100) {
+						sender.sendMessage("You are already playing in this arena!");
+					}
+					else if (ret == -101) {
+						sender.sendMessage("You are already playing in an arena, leave before trying to join this one! (/cw leave)");
+					}
+					return true;
+				}
+			}
+			
 			
 			/* does not work yet */
 			if(args[0].equalsIgnoreCase("rename") || args[0].equalsIgnoreCase("re")) {
-				if(args.length >= 3) {
+				return false;
+				/*if(args.length >= 3) {
 					Arena sel = parent.getArenaByName(args[1]);
 					parent.deleteArena(sel);
 					if (sel != null) {
@@ -270,7 +417,7 @@ public class CastleWarsCommands implements CommandExecutor {
 				else {
 					sender.sendMessage("No arena selected, and none specified!");
 					return false;
-				}
+				}*/
 			}
 			
 		}

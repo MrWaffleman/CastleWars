@@ -1,14 +1,17 @@
 name: CastleWars
 main: com.mythbusterma.CastleWars.CastleWars
 version: 0.0
+description: CastleWars for MineCraft
+
+author: Mythbusterma
 
 depend: [WorldEdit]
+softdepend: [Vault]
 
 commands:
   castlewars:
     description: All the commands for CastleWars
-  cw: 
-    descritpion: Same
+    aliases: [cw]
 
 permissions:
   castlewars.*:
@@ -21,6 +24,8 @@ permissions:
       castlewars.reload: true
       castlewars.setplayers: true
       castlewars.forceplayers: true
+      castlewars.join: true
+      castlewars.orientation: true
   
   castlewars.create:
     default: op
@@ -42,7 +47,9 @@ permissions:
   castlewars.forceplayers:
     default: op
     description: Can force players to participate in a game
-    
   castlewars.join:
     default: true
     description: Can join a match
+  castlewars.orientation:
+    default: op
+    description: Can change the orientation of an arena

@@ -28,7 +28,6 @@ public class ArenaData implements ConfigurationSerializable {
 	private LocationSerializable spectatorSpawn;
 	private String schematicName;
 	private Orientation orientation;
-	private World world;
 	private Arena parent;
 	
 	public static enum Orientation 
@@ -114,6 +113,10 @@ public class ArenaData implements ConfigurationSerializable {
 	}
 
 	public LocationSerializable getSpectatorSpawn() {
+		
+		if (spectatorSpawn == null) {
+			return lobbySpawn;
+		}
 		return spectatorSpawn;
 	}
 
@@ -130,6 +133,9 @@ public class ArenaData implements ConfigurationSerializable {
 	}
 
 	public Location getBlueSpawn() {
+		if(blueSpawn == null) {
+			throw new NullPointerException ("The blue spawn is not defined, please define before you try to use this arena!");
+		}
 		return blueSpawn.toLocation();
 	}
 
@@ -138,6 +144,9 @@ public class ArenaData implements ConfigurationSerializable {
 	}
 
 	public Location getRedSpawn() {
+		if(redSpawn == null) {
+			throw new NullPointerException ("The red spawn is not defined, please define before you try to use this arena!");
+		}
 		return redSpawn.toLocation();
 	}
 
@@ -146,6 +155,9 @@ public class ArenaData implements ConfigurationSerializable {
 	}
 
 	public Location getLobbySpawn() {
+		if(lobbySpawn == null) {
+			throw new NullPointerException ("The lobby spawn is not defined, please define before you try to use this arena!");
+		}
 		return lobbySpawn.toLocation();
 	}
 	

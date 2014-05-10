@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.mythbusterma.CastleWars.Serializables.ArenaData.Orientation;
 import com.sk89q.worldedit.bukkit.selections.*;
 
 public class Utils {
@@ -89,14 +90,20 @@ public class Utils {
 
 	public void setLobbySpawn(Player sender, String arena) throws NullPointerException {
 		parent.getArenaByName(arena).getData().setLobbySpawn(sender.getLocation());
+		parent.getArenaByName(arena).getCurrentMatch().tryComplete();
 	}
 
 	public void setRedSpawn(Player sender, String arena) {
-		parent.getArenaByName(arena).getData().setRedSpawn(sender.getLocation());		
+		parent.getArenaByName(arena).getData().setRedSpawn(sender.getLocation());
+		parent.getArenaByName(arena).getCurrentMatch().tryComplete();
 	}
 
 	public void setBlueSpawn(Player sender, String arena) {
-		parent.getArenaByName(arena).getData().setBlueSpawn(sender.getLocation());		
+		parent.getArenaByName(arena).getData().setBlueSpawn(sender.getLocation());
+		parent.getArenaByName(arena).getCurrentMatch().tryComplete();
 	}
-
+	public void setOrientation(String arena, Orientation o) {
+		parent.getArenaByName(arena).getData().setOrientation(o);
+		parent.getArenaByName(arena).getCurrentMatch().tryComplete();
+	}
 }

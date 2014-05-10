@@ -1,17 +1,23 @@
 package com.mythbusterma.CastleWars;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
+import com.mythbusterma.CastleWars.Events.MatchThinkEvent;
 import com.mythbusterma.CastleWars.Serializables.ArenaData;
 import com.mythbusterma.CastleWars.Serializables.LocationSerializable;
 import com.sk89q.worldedit.bukkit.*;
@@ -30,7 +36,11 @@ public class CastleWars extends JavaPlugin {
 		RED,
 		BLUE,
 		SPECTATE,
-		LOBBY;
+		LOBBY,
+		/**
+		 * Dead players will be spectating the match
+		 */
+		DEAD;
 		
 		public int toInteger(Team t) {
 			if (t==RED) {
@@ -44,6 +54,9 @@ public class CastleWars extends JavaPlugin {
 			}
 			else if (t==LOBBY) {
 				return 4;
+			}
+			else if (t==DEAD) {
+				return 5;
 			}
 			else {
 				return -1;
@@ -62,12 +75,16 @@ public class CastleWars extends JavaPlugin {
 			else if (i == 4) {
 				return LOBBY;
 			}
+			else if (i == 5) {
+				return DEAD;
+			}
 			else return null;
 		}
 	}
 	
 	public void onEnable() {
 		
+		// register the serializables
 		ConfigurationSerialization.registerClass(ArenaData.class);
 		ConfigurationSerialization.registerClass(LocationSerializable.class);
 		
@@ -79,6 +96,8 @@ public class CastleWars extends JavaPlugin {
 		PluginManager pm = this.getServer().getPluginManager();
 		
 		pm.registerEvents(new MatchThinkListener(this), this);
+		pm.registerEvents(new PlayerListener(this), this);
+		pm.registerEvents(new BlockListener(this), this);
 		
 		getCommand("castlewars").setExecutor(new CastleWarsCommands(this));
 		getCommand("cw").setExecutor(new CastleWarsCommands(this));
@@ -89,6 +108,7 @@ public class CastleWars extends JavaPlugin {
 		
 		saveDefaultConfig();
 		
+		// find the default world and initialize the terrain manager
 		if(getConfig().getString("world") == null) {
 			getConfig().set("world", getServer().getWorlds().get(0).getName());
 			saveConfig();
@@ -97,10 +117,23 @@ public class CastleWars extends JavaPlugin {
 		tm = new TerrainManager(worldedit,getServer().getWorld(getConfig().getString("world")));
 		
 		loadArenas();
+		
+		// Schedule the match think events
+		BukkitScheduler sche = this.getServer().getScheduler();
+		sche.scheduleSyncRepeatingTask(this, new Runnable () {
+			@Override
+			public void run() {
+				MatchThinkEvent event = new MatchThinkEvent();
+				Bukkit.getServer().getPluginManager().callEvent(event);
+			}
+		}, 100L, 20L);
+		
+		
 	}
 	
 	public void onDisable() {
 		saveArenas();
+		saveConfig();
 	}
 
 	public WorldEditPlugin getWorldedit() {
@@ -195,4 +228,32 @@ public class CastleWars extends JavaPlugin {
 	public TerrainManager getTm() {
 		return tm;
 	}
+	
+	public void logToFile(String message) {
+        try {
+            File dataFolder = getDataFolder();
+            if(!dataFolder.exists()) {
+                dataFolder.mkdir();
+            }
+ 
+            File saveTo = new File(getDataFolder(), "logs.txt");
+            if (!saveTo.exists()) {
+                saveTo.createNewFile();
+            }
+            FileWriter fw = new FileWriter(saveTo, true);
+ 
+            PrintWriter pw = new PrintWriter(fw);
+ 
+            pw.println(message);
+ 
+            pw.flush();
+ 
+            pw.close();
+ 
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+ 
+    }	
 }
