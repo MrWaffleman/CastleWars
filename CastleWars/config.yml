@@ -1,11 +1,14 @@
+#
 #Default world, the only world this pulgin can be used in (will be fixed in future update) set automatically at server start, 
-# change if default world is not where this is being used
+# change if default world is not where this is being used, CAUSES UNDEFINED BEHAVIOUR IF AN ARENA HAS ALREADY BEEN CREATED
+# DELETE ALL ARENAS BEFORE CHANGING THIS VALUE
 world:
 mins:
   minx: 10
   miny: 2
   minz: 10
   
+
 #The minimum number of players in lobby to start the match countdown
 
 minplayers: 4
@@ -14,6 +17,11 @@ minplayers: 4
 #The maximum number of players in a game
 
 maxplayers: 20
+
+
+#Wall material, use block id
+
+wallmat: 1
 
 
 #The length of time before a match start after the minimum number of players join, in seconds
@@ -36,6 +44,14 @@ secondstagelength: 900 #15 minutes
 
 hungerlobbydisable: true
 hungerspectatordisable: true
+
+
+#Punish players for breaking blocks in the lobby and trying to use forbidden commands?
+
+punishblockbreak: true
+punishcommand: true
+#Damage to deal
+punishmentdamage: 2.0 #One heart
 
 
 #Friendly fire, i.e. red can damage red, blue can damage blue (false for no friendly fire)
@@ -70,6 +86,11 @@ disablemobdamage: false
 extraplayerspectate: true
 
 
+#Currency unit to display next to the currency
+
+currencyunit: dollars
+
+
 #Teleportation delay in seconds
 
 teleportdelay: 4
@@ -78,13 +99,18 @@ teleportdelay: 4
 #Payouts (REQUIRES VAULT)
 
 #All members of the winning team recive
-winpayout: 200
-#Last player standing recives bouns (or multiple if from the same team, in addition to team win bonus)
-lastmanbonus: 200
+winpayout: 200.00
 #All players on the losing team recive this, as a second place prize
-losepayout: 0
+losepayout: 0.00
+#All players recive this in the event of a tie 
+tiepayout: 100.00
+#Last player standing recives bouns (or multiple if from the same team, in addition to team win bonus)
+lastmanbonus: 200.00
 #Last player alive on the losing team recives this
-lastmanlose: 200
+lastmanlose: 200.00
+#Punishment for leaving the game early
+playerleavepunish: 1000.00
+
 
 
 #Disallowed commands for players in the game (prevent tping out, etc.)
@@ -100,3 +126,24 @@ disallowedcommands:
   - sethome
   - warp
   - setwarp
+
+
+#Commands to issue before the start of a match, for example a mine reset plugin to randomize the mine each time, enter the full command without the "/" in front
+# e.g. minereset reset arenamine
+
+prematchcommands:
+  arena1:
+    -
+ 
+
+#Times to try leaving the arena before you are respawned
+
+exitattempts: 15
+    
+
+#Blocks or items players start off with, use <blockid>_<datavalue>: <amount>    
+
+startingkits:
+  1: 5
+  35_5: 4
+  

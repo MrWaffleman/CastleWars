@@ -6,8 +6,6 @@ import java.util.*;
 import java.util.logging.Level;
 
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.block.BlockState;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.util.BlockVector;
@@ -29,6 +27,8 @@ public class ArenaData implements ConfigurationSerializable {
 	private String schematicName;
 	private Orientation orientation;
 	private Arena parent;
+	private Integer maxPlayers;
+	private Integer minPlayers;
 	
 	public static enum Orientation 
 	{
@@ -75,6 +75,9 @@ public class ArenaData implements ConfigurationSerializable {
 		
 		orientation = Orientation.fromInteger(((Integer)map.get("orientation")).intValue());
 		
+		
+		maxPlayers = (Integer)map.get("maxplayers");
+		minPlayers = (Integer)map.get("minplayers");
 		schematicName = (String)map.get("schem");
 		
 	}
@@ -95,6 +98,8 @@ public class ArenaData implements ConfigurationSerializable {
 		parent.getTM().saveTerrain(file, s.getMaximumPoint(), s.getMinimumPoint());
 		System.out.println("Saved");
 		this.getParent().getParent().getLogger().log(Level.INFO, "Saved new file: " +file);
+		maxPlayers = null;
+		minPlayers = null;
 		
 	}
 	
@@ -109,6 +114,8 @@ public class ArenaData implements ConfigurationSerializable {
 		temp.put("schem",schematicName);
 		temp.put("spectator", spectatorSpawn);
 		temp.put("orientation", Orientation.toInteger(orientation));
+		temp.put("maxplayers", maxPlayers);
+		temp.put("minplayers", minPlayers);
 		return temp;
 	}
 
@@ -134,7 +141,7 @@ public class ArenaData implements ConfigurationSerializable {
 
 	public Location getBlueSpawn() {
 		if(blueSpawn == null) {
-			throw new NullPointerException ("The blue spawn is not defined, please define before you try to use this arena!");
+			return null;
 		}
 		return blueSpawn.toLocation();
 	}
@@ -145,7 +152,7 @@ public class ArenaData implements ConfigurationSerializable {
 
 	public Location getRedSpawn() {
 		if(redSpawn == null) {
-			throw new NullPointerException ("The red spawn is not defined, please define before you try to use this arena!");
+			return null;
 		}
 		return redSpawn.toLocation();
 	}
@@ -156,7 +163,7 @@ public class ArenaData implements ConfigurationSerializable {
 
 	public Location getLobbySpawn() {
 		if(lobbySpawn == null) {
-			throw new NullPointerException ("The lobby spawn is not defined, please define before you try to use this arena!");
+			return null;
 		}
 		return lobbySpawn.toLocation();
 	}
@@ -187,5 +194,31 @@ public class ArenaData implements ConfigurationSerializable {
 
 	public void setParent(Arena parent) {
 		this.parent = parent;
+	}
+	
+	public void setMaxPlayers (int _max) {
+		maxPlayers = _max;
+	}
+	
+	public void setMinPlayers (int _min) {
+		minPlayers = _min;
+	}
+	
+	public int getMaxPlayers () {
+		if(maxPlayers == null) {
+			return parent.getParent().getConfig().getInt("maxplayers");
+		}
+		else {
+			return maxPlayers;
+		}
+	}
+	
+	public int getMinPlayers () {
+		if(minPlayers == null) {
+			return parent.getParent().getConfig().getInt("minplayers");
+		}
+		else {
+			return minPlayers;
+		}
 	}
 }
